@@ -10,6 +10,8 @@ If the emergency mode don't boot properly, then you will have no choice but to u
   
 The aim of all this is to be able to repair things more easily if, for example, the desktop cannot start or you can't log with your account; so you can track the errors and correct them, or manage users from the root account.  
   
+![Alt text](/recovtools.jpg?raw=true "dark theme")
+  
 To install these grub entries & related scripts, simply download the attached script, set it executable :  
 
 sudo chmod +x setup_recov.sh  
