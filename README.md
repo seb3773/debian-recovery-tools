@@ -1,7 +1,7 @@
 # debian-recovery-tools
-recovery tools selectable in grub menu to repair a broken debian install
+recovery tools scripts selectable in grub menu to repair a broken debian install.
   
-This script will install a "recovery tools" entry in your grub menu; where you can select an emergency menu (run at systemd emergency target) or a rescue menu (run at systemd rescue target) with multiple tools to repair a broken debian install (or other use scenarios). You will have the option to run an instance of clonezilla live too if you want.
+This script will install a "recovery tools" entry in your grub menu; where you can select an emergency submenu (run at systemd emergency target) or a rescue submenu (run at systemd rescue target) with multiple tools to repair a broken debian install (or other use scenarios). You will have the option to add a "Clonezilla live" submenu entry too; to launch an instance of clonezilla live if you need it.
   
 "Emergency target" is, to make simple, a minimal root shell mode, whithout base services. This mode allows you to perform operations like fsck the root partition for example; and other let's say "low level" operations because very few processes are launched at this stage (that's why it's the 'emergency' target, it have more chances to work even if the system is partially damaged).
 If the emergency mode don't boot properly, then you will have no choice but to use an external device to boot an os live in order to do repairs...
