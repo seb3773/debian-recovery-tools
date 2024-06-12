@@ -25,7 +25,7 @@ echo -e "  > Root disk (/) UUID: \e[92m$uuid\e[39m"
 echo -e "  > locales: \e[92m$current_locale\e[39m"
 echo -e "  > keyboard layout: \e[92m$keyboard_layout\e[39m";echo
 echo -e "\e[97m\e[100m # needed packages:\e[39m\e[49m"
-sizless=300;sizmc=1500;sizinxi=1500;sizduf=2200;sizncdu=120;sizdeborph=300;sizw3m=2900;sizlynis=1700;sizrmlint=400
+sizless=300;sizmc=1500;sizinxi=1500;sizduf=2200;sizncdu=120;sizdeborph=300;sizw3m=2900;sizlynis=1700;sizrmlint=400;sizpasteb=330
 appok(){ echo -e -n "\e[92m\e[4mOk\e[39m\e[0m";};notok(){ echo -e -n "\e[41m\e[97mX\e[49m\e[39m ";};siztoinst=0;lstapps=""
 echo -e -n "  > checking 'less':  ";if [ -f /usr/bin/less ];then appok;else notok;appless=1;((siztoinst+=sizless));lstapps+="  less  ";fi
 echo -e -n "      > checking 'mc' : ";if [ -f /bin/mc ];then appok;else notok;appmc=1;((siztoinst+=sizmc));lstapps+="  mc  ";fi;echo
@@ -35,7 +35,8 @@ echo -e -n "  > checking 'ncdu':  ";if [ -f /usr/bin/ncdu ];then appok;else noto
 echo -e -n "      > checking 'w3m': ";if [ -f /usr/bin/w3m ];then appok;else notok;appw3m=1;((siztoinst+=sizw3m));lstapps+="  w3m  ";fi;echo
 echo -e -n "  > checking 'lynis': ";if [ -f /usr/sbin/lynis ];then appok;else notok;applynis=1;((siztoinst+=sizlynis));lstapps+="  lynis  ";fi
 echo -e -n "      > checking 'deborphan': ";if [ -f /usr/bin/deborphan ];then appok;else notok;appdeborph=1;((siztoinst+=sizdeborph));lstapps+="  deborphan  ";fi;echo
-echo -e -n "  > checking 'rmlint': ";if [ -f /usr/bin/rmlint ];then appok;else notok;apprmlint=1;((siztoinst+=sizrmlint));lstapps+="  rmlint  ";fi;echo
+echo -e -n "  > checking 'rmlint': ";if [ -f /usr/bin/rmlint ];then appok;else notok;apprmlint=1;((siztoinst+=sizrmlint));lstapps+="  rmlint  ";fi
+echo -e -n "     > checking 'pastebinit': ";if [ -f /usr/bin/pastebinit ];then appok;else notok;apppasteb=1;((siztoinst+=sizpasteb));lstapps+="  pastebinit  ";fi;echo
 if [ -n "$lstapps" ]; then echo;echo -e " \e[4mThe following needed package(s) will be installed:\e[0m "
 echo -e "\e[93m  $lstapps\e[39m";echo -e " this will use approximatively \e[4m$siztoinst K of disk space\e[0m.";fi
 echo;echo -n -e " Proceed ? (\e[92my\e[39m/\e[91mn\e[39m) " && read x
@@ -62,12 +63,16 @@ sudo chmod 600 "/root/recovtools/phash.txt"
 else rm -f "/root/recovtools/phash.txt";fi
 echo;echo " # Copying files to /root/recovtools/"
 extract_b64 "spleen-12x24.psfu.gz" "/root/recovtools"
+extract_b64 "spleen-8x16.psfu.gz" "/root/recovtools"
 extract_script emergencymenu.sh "/root/recovtools"
 extract_script rescuemenu.sh "/root/recovtools"
+extract_script usersmg.sh "/root/recovtools"
 sudo chown root:root /root/recovtools/emergencymenu.sh
 sudo chmod 700 /root/recovtools/emergencymenu.sh
 sudo chown root:root /root/recovtools/rescuemenu.sh
 sudo chmod 700 /root/recovtools/rescuemenu.sh
+sudo chown root:root /root/recovtools/usersmg.sh
+sudo chmod 700 /root/recovtools/usersmg.sh
 echo;echo " # Dumping current keymap to /root/recovtools/"
 dumpkeys > /root/recovtools/recovmenu.keymap
 if [ -n "$lstapps" ]; then echo;echo " # Installing needed packages..."
@@ -89,6 +94,7 @@ if [[ $appncdu -eq 1 ]];then instr ncdu;fi
 if [[ $appdeborph -eq 1 ]];then instr deborphan;fi
 if [[ $appw3m -eq 1 ]];then instr w3m;fi
 if [[ $applynis -eq 1 ]];then instr lynis;fi
+if [[ apppasteb -eq 1 ]];then instr pastebinit;fi
 if [[ $apprmlint -eq 1 ]];then
 echo "  -- installing rmlint"
 apt install -y rmlint --no-install-recommends  > /dev/null 2>&1
@@ -117,7 +123,7 @@ echo;echo " # moving clonezilla ISO to /root/recovtools/"
 mv -f $zillaiso /root/recovtools/;fi
 fi
 echo;echo " # Creating emergency & rescue system units overrides to /etc/systemd/system/"
-echo;echo "   > Creating /etc/systemd/system/emergency.service";echo
+echo "   > Creating /etc/systemd/system/emergency.service"
 {
 echo "# modified version of emergency.service for recovery tools"
 echo
@@ -144,7 +150,7 @@ echo "IgnoreSIGPIPE=no"
 echo "SendSIGHUP=yes"
 echo
 } > "/etc/systemd/system/emergency.service"
-echo;echo "   > Creating /etc/systemd/system/rescue.service";echo
+echo "   > Creating /etc/systemd/system/rescue.service"
 {
 echo "# modified version of rescue.service for recovery tools"
 echo
@@ -244,6 +250,10 @@ remountroot(){ if findmnt -n -o OPTIONS / | egrep "^ro,|,ro,|,ro$"; then  mount 
 taskdone(){ echo;echo "-----------------------------------------------------------------------------------------------------"
 echo -e -n "\e[43m\e[97mDone. Press enter to continue.\e[39m\e[49m" && read x;}
 itdisp(){ clear;echo;echo -e "++++++   \e[1m\e[97m\e[44m$1\e[0m   ++++++";echo;}
+choosefonts() { clear;while true; do
+echo "Choose the font size:";echo "1 - Normal fonts";echo "2 - Small fonts";echo "q - Quit"
+read choice
+case $choice in 1) setfont /root/recovtools/spleen-12x24.psfu.gz; rm -f /root/recovtools/smallfonts;break ;; 2) setfont /root/recovtools/spleen-8x16.psfu.gz; touch /root/recovtools/smallfonts;break ;; q) echo "Exiting font selection."; break ;; *) echo "Invalid choice. Please choose again."; ;; esac;done; }
 phymem=$(LANG=C free|awk '/^Mem:/{printf ("%.2f\n",$2/(1024*1024))}')
 dskfree=$(df -k / | tail -1 | awk '{print int($4/(1024*1024))}')
 osarch=$(dpkg --print-architecture)
@@ -252,10 +262,12 @@ partitions=$(lsblk -o NAME,FSTYPE -nr)
 ntfs_partitions=$(echo "$partitions" | grep -w ntfs)
 if [ -z "$ntfs_partitions" ]; then ntfsdisk=0;else ntfsdisk=1;fi
 loadkeys /root/recovtools/recovmenu.keymap
-setfont /root/recovtools/spleen-12x24.psfu.gz
+if [ -e "/root/recovtools/smallfonts" ]; then
+setfont /root/recovtools/spleen-8x16.psfu.gz;else setfont /root/recovtools/spleen-12x24.psfu.gz;fi
 while true; do
 dskfree=$(df -k / | tail -1 | awk '{print int($4/(1024*1024))}')
 MENU_OPTIONS=(
+  "font size" "  ++  change current font size"
   "fsck" "  ═   fsck all disks"
 )
 if [ "$ntfsdisk" -eq 1 ]; then
@@ -268,15 +280,19 @@ MENU_OPTIONS+=(
   "free space" "  ─   try to make free space"
   "update-grub" "  ─   update grub bootloader"
   "fix perms" "  ─   try to fix permissions"
+  "users/groups" "  ─   users & group management"
   "testdisk" "  ─   launch testdisk"
   "photorec" "  ─   launch photorec"
   "shell" "  ═   root shell prompt"
   "rescue mode" "  »   go to rescue mode"
   "reboot" "  ×   reboot system now"
 )
-CHOICE=$(whiptail --title "  Emergency Menu ~ $HOSTNAME ~ $osarch  " --menu "\n■ Ram: $phymem Gb   ■ Disk free: $dskfree Gb\n■ Current kernel: $ckern\n≡ $(date '+%A %d %B %Y')\n\n► Choose an option:" 28 60 14 \
+CHOICE=$(whiptail --title "  Emergency Menu ~ $HOSTNAME ~ $osarch  " --menu "\n■ Ram: $phymem Gb   ■ Disk free: $dskfree Gb\n■ Current kernel: $ckern\n≡ $(date '+%A %d %B %Y')\n\n► Choose an option:" 29 60 15 \
 "${MENU_OPTIONS[@]}" 3>&1 1>&2 2>&3)
 case $CHOICE in
+"font size")
+choosefonts
+;;
 "fsck")
 itdisp "fsck all disks"
 echo -e "(if output is larger than the screen height, use \e[4mup & down arrow to scroll\e[0m - \e[4m'q' to quit\e[0m)";echo
@@ -298,6 +314,7 @@ taskdone
 "inxi")
 itdisp "Retrieving system summary...";sleep 1
 echo "$(echo;echo ">  Displaying system summary:";echo -e "(if output is larger than the screen height, use \e[4mup & down arrow to scroll\e[0m - \e[4m'q' to quit\e[0m)";echo;inxi -Fxz -c 11)" | less -R
+taskdone
 ;;
 "mc")
 remountroot
@@ -436,6 +453,10 @@ fi
 done
 taskdone
 ;;
+"users/groups")
+remountroot
+bash -c /root/recovtools/usersmg.sh
+;;
 "testdisk")
 itdisp "Launching testdisk"
 remountroot
@@ -496,6 +517,10 @@ separ="\n-----------------------------------------------------------------------
 taskdone(){ echo;echo "-----------------------------------------------------------------------------------------------------"
 echo -e -n "\e[43m\e[97mDone. Press enter to continue.\e[39m\e[49m" && read x;}
 itdisp(){ clear;echo;echo -e "++++++   \e[1m\e[97m\e[44m$1\e[0m   ++++++";echo;}
+choosefonts() { clear;while true; do
+echo "Choose the font size:";echo "1 - Normal fonts";echo "2 - Small fonts";echo "q - Quit"
+read choice
+case $choice in 1) setfont /root/recovtools/spleen-12x24.psfu.gz; rm -f /root/recovtools/smallfonts;break ;; 2) setfont /root/recovtools/spleen-8x16.psfu.gz; touch /root/recovtools/smallfonts;break ;; q) echo "Exiting font selection."; break ;; *) echo "Invalid choice. Please choose again."; ;; esac;done; }
 dskfree=$(df -k / | tail -1 | awk '{print int($4/(1024*1024))}')
 phymem=$(LANG=C free|awk '/^Mem:/{printf ("%.2f\n",$2/(1024*1024))}')
 osarch=$(dpkg --print-architecture)
@@ -505,8 +530,11 @@ ntfs_partitions=$(echo "$partitions" | grep -w ntfs)
 if [ -z "$ntfs_partitions" ]; then ntfsdisk=0;else ntfsdisk=1;fi
 netwstat="Network: not connected"
 loadkeys /root/recovtools/recovmenu.keymap
-setfont /root/recovtools/spleen-12x24.psfu.gz
-echo "Launching NetworkManager..";sleep 1
+if [ -e "/root/recovtools/smallfonts" ]; then
+setfont /root/recovtools/spleen-8x16.psfu.gz;else setfont /root/recovtools/spleen-12x24.psfu.gz;fi
+echo "Launching NetworkManager.."
+systemctl start dbus
+sleep 1
 echo -e "\e[1A\e[KLaunching NetworkManager....";sleep 1
 echo -e "\e[1A\e[KLaunching NetworkManager......";sleep 1
 /usr/sbin/NetworkManager
@@ -527,6 +555,7 @@ while true; do
 if [ "$(hostname -I)" = "" ]; then netwstat="Network: not connected";else netwstat="Network: connected";fi
 dskfree=$(df -k / | tail -1 | awk '{print int($4/(1024*1024))}')
 MENU_OPTIONS=(
+  "font size" "  ++  change current font size"
   "apt repair" "  ─   try to repair apt"
   "apt upgrade" "  ═   apt update & upgrade"
   "dpkg repair" "  ─   dpkg: repair broken packages"
@@ -545,6 +574,7 @@ MENU_OPTIONS+=(
   "free space" "  ═   try to make free space"
   "update grub" "  ─   update grub bootloader"
   "fix perms" "  ─   try to fix permissions"
+  "users/groups" "  ─   users & group management"
   "nmtui" "  ─   launch network config tool"
   "w3m" "  ─   terminal web browser"
   "lynis" "  ─   system audit"
@@ -553,9 +583,12 @@ MENU_OPTIONS+=(
   "shell" "  ═   shell prompt"
   "reboot" "  ×   reboot system now"
 )
-CHOICE=$(whiptail --title "  Rescue Menu ~ $HOSTNAME ~ $osarch  " --menu "\n■ Ram:$phymem Gb   ■ Disk free: $dskfree Gb\n■ Current kernel: $ckern\n≡ $(date '+%A %d %B %Y')   ≡ $netwstat\n► Choose an option:" 34 70 22 \
+CHOICE=$(whiptail --title "  Rescue Menu ~ $HOSTNAME ~ $osarch  " --menu "\n■ Ram:$phymem Gb   ■ Disk free: $dskfree Gb\n■ Current kernel: $ckern\n≡ $(date '+%A %d %B %Y')   ≡ $netwstat\n► Choose an option:" 35 70 23 \
 "${MENU_OPTIONS[@]}" 3>&1 1>&2 2>&3)
 case $CHOICE in
+"font size")
+choosefonts
+;;
 "apt repair")
 itdisp "Attempting to repair apt..."
 echo "> apt upgrade --fix-missing"
@@ -647,6 +680,7 @@ taskdone
 "inxi")
 itdisp "Retrieving system summary...";sleep 1
 echo "$(echo;echo ">  Displaying system summary:";echo -e "(if output is larger than the screen height, use \e[4mup & down arrow to scroll\e[0m - \e[4m'q' to quit\e[0m)";echo;inxi -Fxz -c 11)" | less -R
+taskdone
 ;;
 "duf")
 itdisp "Displaying disks infos:"
@@ -843,6 +877,10 @@ fi
 done
 taskdone
 ;;
+"users/groups")
+remountroot
+bash -c /root/recovtools/usersmg.sh
+;;
 "nmtui")
 /usr/bin/nmtui
 ;;
@@ -859,6 +897,7 @@ echo -e "    \e[4m'q' to quit\e[0m."
 echo
 read -p " > Press enter to start..."
 lynis audit system | less -R
+taskdone
 ;;
 "testdisk")
 itdisp "Launching testdisk"
@@ -883,6 +922,389 @@ exit 0
 esac
 done
 ##[END_rescuemenu.sh]##
+#▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+##[usersmg.sh]##
+#!/bin/bash
+function user_exists { id "$1" &>/dev/null; }
+function group_exists { getent group "$1" &>/dev/null; }
+function list_users { echo "Users list:"
+users=$(cat /etc/passwd)
+IFS=$'\n' read -d '' -r -a user_array <<< "$users"
+max_length=0
+for ((i = 0; i < ${#user_array[@]}; i+=2)); do
+length=${#user_array[i]}
+if (( length > max_length )); then
+max_length=$length
+fi
+done
+max_length=$((max_length + 1))
+fg_color_col1="\e[97m"
+fg_color_col2="\e[37m"
+for ((i = 0; i < ${#user_array[@]}; i+=2)); do
+user1="${user_array[i]}"
+user2=""
+if (( i + 1 < ${#user_array[@]} )); then
+user2="${user_array[i + 1]}"
+fi
+printf "${fg_color_col1}%-${max_length}s\e[0m ! " "$user1"
+printf "${fg_color_col2}%s\e[0m\n" "$user2"
+if [ "$fg_color_col1" == "\e[97m" ]; then
+fg_color_col1="\e[37m"
+else
+fg_color_col1="\e[97m"
+fi
+if [ "$fg_color_col2" == "\e[37m" ]; then
+fg_color_col2="\e[97m"
+else
+fg_color_col2="\e[37m"
+fi
+if [ -z "$user2" ]; then
+break
+fi
+done
+echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+ }
+function add_user {
+read -p "Enter user name to add: " username
+if user_exists "$username"; then
+echo "Error: user $username already exists."
+else
+useradd "$username"
+if [ $? -eq 0 ]; then
+echo "User $username added."
+else
+echo "Error adding user $username."
+fi
+fi
+echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+}
+function modify_user {
+read -p "Enter user name to modify: " username
+if ! user_exists "$username"; then
+echo "Error: user $username doesn't exist."
+else
+echo
+echo "Modify user $username :"
+echo "1   Change shell"
+echo "2   Change UID"
+echo "3   Change main group"
+echo "4   Lock account"
+echo "5   Unlock account"
+#echo "6   Change password"
+echo "q   return"
+read -p "Enter a choice: " option
+case $option in
+1)
+read -p "Enter new shell (ex: /bin/bash): " newshell
+usermod -s "$newshell" "$username"
+if [ $? -eq 0 ]; then
+echo "User $username shell modified to $newshell"
+else
+echo "Error modifying user  $username shell"
+fi
+echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+;;
+2)
+read -p "Enter new UID: " newuid
+usermod -u "$newuid" "$username"
+if [ $? -eq 0 ]; then
+echo "User $username UID modified to $newuid"
+else
+echo "Error modifying user $username UID"
+fi
+echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+;;
+3)
+read -p "Enter new main group: " newgroup
+if group_exists "$newgroup"; then
+usermod -g "$newgroup" "$username"
+if [ $? -eq 0 ]; then
+echo "User $username main group modified to $newgroup"
+else
+echo "Error modifying user $username main group"
+fi
+else
+echo "Error: group $newgroup doesn't exist"
+fi
+echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+;;
+4)
+usermod -L "$username"
+if [ $? -eq 0 ]; then
+echo "User $username account locked"
+else
+echo "Error unlocking user $username account"
+fi
+echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+;;
+5)
+usermod -U "$username"
+if [ $? -eq 0 ]; then
+echo "User $username account unlocked"
+else
+echo "Error locking user $username account"
+fi
+echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+;;
+q) return ;;
+*)
+echo;echo "Unknown option, please enter a valid choice [1-5/q]"
+;;
+esac
+fi
+}
+
+function delete_user {
+read -p "Enter user name to delete: " username
+if ! user_exists "$username"; then
+echo "Error: user $username doesn't exist"
+else
+userdel "$username"
+if [ $? -eq 0 ]; then
+echo "User $username deleted."
+else
+echo "Error deleting user $username."
+fi
+fi
+echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+}
+
+function list_groups {
+echo "Group list:"
+groups=$(cat /etc/group)
+IFS=$'\n' read -d '' -r -a group_array <<< "$groups"
+max_length1=0
+max_length2=0
+max_length3=0
+max_length4=0
+for ((i = 0; i < ${#group_array[@]}; i+=4)); do
+group1="${group_array[i]}"
+if (( ${#group1} > max_length1 )); then
+max_length1=${#group1}
+fi
+done
+for ((i = 1; i < ${#group_array[@]}; i+=4)); do
+group2="${group_array[i]}"
+if (( ${#group2} > max_length2 )); then
+max_length2=${#group2}
+fi
+done
+for ((i = 2; i < ${#group_array[@]}; i+=4)); do
+group3="${group_array[i]}"
+if (( ${#group3} > max_length3 )); then
+max_length3=${#group3}
+fi
+done
+for ((i = 3; i < ${#group_array[@]}; i+=4)); do
+group4="${group_array[i]}"
+if (( ${#group4} > max_length4 )); then
+max_length4=${#group4}
+fi
+done
+max_length1=$((max_length1 + 1))
+max_length2=$((max_length2 + 1))
+max_length3=$((max_length3 + 1))
+max_length4=$((max_length4 + 1))
+fg_color_col1="\e[37m"
+fg_color_col2="\e[97m"
+fg_color_col3="\e[37m"
+fg_color_col4="\e[97m"
+for ((i = 0; i < ${#group_array[@]}; i+=4)); do
+group1="${group_array[i]}"
+group2="${group_array[i + 1]}"
+group3="${group_array[i + 2]}"
+group4="${group_array[i + 3]}"
+printf "${fg_color_col1}%-${max_length1}s\e[0m !" "$group1"
+printf "${fg_color_col2}%-${max_length2}s\e[0m !" "$group2"
+printf "${fg_color_col3}%-${max_length3}s\e[0m !" "$group3"
+printf "${fg_color_col4}%s\e[0m\n" "$group4"
+if [ "$fg_color_col1" == "\e[37m" ]; then
+fg_color_col1="\e[97m"
+else
+fg_color_col1="\e[37m"
+fi
+if [ "$fg_color_col2" == "\e[97m" ]; then
+fg_color_col2="\e[37m"
+else
+fg_color_col2="\e[97m"
+fi
+if [ "$fg_color_col3" == "\e[37m" ]; then
+fg_color_col3="\e[97m"
+else
+fg_color_col3="\e[37m"
+fi
+if [ "$fg_color_col4" == "\e[97m" ]; then
+fg_color_col4="\e[37m"
+else
+fg_color_col4="\e[97m"
+fi
+done
+echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+}
+
+function add_group {
+read -p "Enter group name to add: " groupname
+if group_exists "$groupname"; then
+echo "Error: group $groupname already exists."
+else
+groupadd "$groupname"
+if [ $? -eq 0 ]; then
+echo "Group $groupname added"
+else
+echo "Error adding group $groupname"
+fi
+fi
+echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+}
+
+function modify_group {
+read -p "Enter group name to modify: " groupname
+if ! group_exists "$groupname"; then
+echo "Error: group $groupname doesn't exist"
+else
+echo
+echo "> group $groupname:"
+echo
+echo "1   Change group name"
+echo "2   Change group GID"
+echo "3   Add user to group"
+echo "4   Delete an user from group"
+echo "5   List group users"
+echo "q   return"
+read -p "Enter a choice: " option
+case $option in
+1)
+read -p "Enter new group name: " newgroupname
+groupmod -n "$newgroupname" "$groupname"
+if [ $? -eq 0 ]; then
+echo "Group $groupname renamed to $newgroupname"
+else
+echo "Error renaming group $groupname"
+fi
+echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+;;
+2)
+read -p "Enter new group GID: " newgid
+groupmod -g "$newgid" "$groupname"
+if [ $? -eq 0 ]; then
+echo "Group $groupname GID changed to $newgid"
+else
+echo "error changing group $groupname gid"
+fi
+echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+;;
+3)
+read -p "Enter user name to add to group: " username
+if user_exists "$username"; then
+usermod -aG "$groupname" "$username"
+if [ $? -eq 0 ]; then
+echo "User $username added to group $groupname"
+else
+echo "Error adding user $username to group $groupname."
+fi
+else
+echo "Error: user $username doesn't exist."
+fi
+echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+;;
+4)
+read -p "Enter username to delete from group: " username
+if user_exists "$username"; then
+gpasswd -d "$username" "$groupname"
+if [ $? -eq 0 ]; then
+echo "User $username deleted from group $groupname"
+else
+echo "Error deleting user $username from group $groupname."
+fi
+else
+echo "Error: user $username doesn't exist."
+fi
+echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+;;
+5)
+echo "Group $groupname users:"
+getent group "$groupname" | awk -F: '{print $4}'
+echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+;;
+q) return ;;
+*)
+echo;echo "Unknown option, please enter a valid choice [1-5/q]"
+;;
+esac
+fi
+}
+
+function delete_group {
+read -p "Enter group name to delete: " groupname
+if ! group_exists "$groupname"; then
+echo "Error: group $groupname doesn't exist."
+else
+groupdel "$groupname"
+if [ $? -eq 0 ]; then
+echo "Group $groupname deleted."
+else
+echo "Error deleting group $groupname"
+fi
+fi
+echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+}
+
+function user_details {
+read -p "Enter username: " username
+if user_exists "$username"; then
+echo
+echo "User $username infos:"
+cat /etc/passwd | grep "$username:"
+id "$username"
+chage -l "$username"
+else
+echo "Error: user $username doesn't exist."
+fi
+echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+}
+
+function group_details {
+read -p "Please enter group name: " groupname
+if group_exists "$groupname"; then
+echo "Group $groupname infos:"
+getent group "$groupname"
+else
+echo "Error: group $groupname doesn't exist."
+fi
+echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+}
+clear
+while true; do
+echo
+echo "1   list users"
+echo "2   add user"
+echo "3   modify user"
+echo "4   delete user"
+echo "5   Détails de l'utilisateur"
+echo "6   list groups"
+echo "7   add group"
+echo "8   modify group"
+echo "9   delete group"
+echo "10  group infos"
+echo "q   quit"
+echo "=========================="
+read -p "Enter a choice: " choice
+case $choice in
+1) list_users ;;
+2) add_user ;;
+3) modify_user ;;
+4) delete_user ;;
+5) user_details ;;
+6) list_groups ;;
+7) add_group ;;
+8) modify_group ;;
+9) delete_group ;;
+10) group_details ;;
+q) exit 0 ;;
+*) echo;echo "Unknown option, please enter a valid choice [1-10/q]" ;;
+esac
+done
+##[END_usersmg.sh]##
 #▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
 ##[spleen-12x24.psfu.gz]##
 H4sICOxDxmAAA3NwbGVlbi0xMngyNC5wc2Z1AKxbCTyU6/d/XTUiS0LZKZWIDCNUotJV0U0pFSWv
@@ -1105,4 +1527,110 @@ g9RySK2A1EpIrYLUakitgdRaSH0LqU2Q2gypLZDaCqltkNoOqR2wPw32E2B/Buwnwv5M2u1Bu2Mw
 BBqINPy/72YaWiAIK6e9aZrDpNDunyga4uD/N8//Ad7Pk259ZwAA
 ##[END_spleen-12x24.psfu.gz]##
 #▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+##[spleen-8x16.psfu.gz]##
+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
+u/n/9H9P/wXIa7vkxCgAAA==
+##[END_spleen-8x16.psfu.gz]##
 
