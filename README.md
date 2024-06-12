@@ -1,5 +1,5 @@
 # debian-recovery-tools
-recovery tools selectable in grub to repair a broken debian install
+recovery tools selectable in grub menu to repair a broken debian install
   
 This script will install a "recovery tools" entry in your grub menu; where you can select an emergency menu (run at systemd emergency target) or a rescue menu (run at systemd rescue target) with multiple tools to repair a broken debian install (or other use scenarios). You will have the option to run an instance of clonezilla live too if you want.
   
