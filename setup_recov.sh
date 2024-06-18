@@ -25,7 +25,7 @@ echo -e "  > Root disk (/) UUID: \e[92m$uuid\e[39m"
 echo -e "  > locales: \e[92m$current_locale\e[39m"
 echo -e "  > keyboard layout: \e[92m$keyboard_layout\e[39m";echo
 echo -e "\e[97m\e[100m # needed packages:\e[39m\e[49m"
-sizless=300;sizmc=1500;sizinxi=1500;sizduf=2200;sizncdu=120;sizdeborph=300;sizw3m=2900;sizlynis=1700;sizrmlint=400;sizpasteb=330
+sizless=300;sizmc=1500;sizinxi=1500;sizduf=2200;sizncdu=120;sizdeborph=300;sizw3m=2900;sizlynis=1700;sizrmlint=400;sizpasteb=330;sizqrenc=80;
 appok(){ echo -e -n "\e[92m\e[4mOk\e[39m\e[0m";};notok(){ echo -e -n "\e[41m\e[97mX\e[49m\e[39m ";};siztoinst=0;lstapps=""
 echo -e -n "  > checking 'less':  ";if [ -f /usr/bin/less ];then appok;else notok;appless=1;((siztoinst+=sizless));lstapps+="  less  ";fi
 echo -e -n "      > checking 'mc' : ";if [ -f /bin/mc ];then appok;else notok;appmc=1;((siztoinst+=sizmc));lstapps+="  mc  ";fi;echo
@@ -37,6 +37,7 @@ echo -e -n "  > checking 'lynis': ";if [ -f /usr/sbin/lynis ];then appok;else no
 echo -e -n "      > checking 'deborphan': ";if [ -f /usr/bin/deborphan ];then appok;else notok;appdeborph=1;((siztoinst+=sizdeborph));lstapps+="  deborphan  ";fi;echo
 echo -e -n "  > checking 'rmlint': ";if [ -f /usr/bin/rmlint ];then appok;else notok;apprmlint=1;((siztoinst+=sizrmlint));lstapps+="  rmlint  ";fi
 echo -e -n "     > checking 'pastebinit': ";if [ -f /usr/bin/pastebinit ];then appok;else notok;apppasteb=1;((siztoinst+=sizpasteb));lstapps+="  pastebinit  ";fi;echo
+echo -e -n "  > checking 'qrencode': ";if [ -f /usr/bin/qrencode ];then appok;else notok;appqrenc=1;((siztoinst+=sizqrenc));lstapps+="  qrencode  ";fi;echo
 if [ -n "$lstapps" ]; then echo;echo -e " \e[4mThe following needed package(s) will be installed:\e[0m "
 echo -e "\e[93m  $lstapps\e[39m";echo -e " this will use approximatively \e[4m$siztoinst K of disk space\e[0m.";fi
 echo;echo -n -e " Proceed ? (\e[92my\e[39m/\e[91mn\e[39m) " && read x
@@ -66,11 +67,14 @@ extract_b64 "spleen-12x24.psfu.gz" "/root/recovtools"
 extract_b64 "spleen-8x16.psfu.gz" "/root/recovtools"
 extract_script emergencymenu.sh "/root/recovtools"
 extract_script rescuemenu.sh "/root/recovtools"
+extract_script servmg.sh "/root/recovtools"
 extract_script usersmg.sh "/root/recovtools"
 sudo chown root:root /root/recovtools/emergencymenu.sh
 sudo chmod 700 /root/recovtools/emergencymenu.sh
 sudo chown root:root /root/recovtools/rescuemenu.sh
 sudo chmod 700 /root/recovtools/rescuemenu.sh
+sudo chown root:root /root/recovtools/servmg.sh
+sudo chmod 700 /root/recovtools/servmg.sh
 sudo chown root:root /root/recovtools/usersmg.sh
 sudo chmod 700 /root/recovtools/usersmg.sh
 echo;echo " # Dumping current keymap to /root/recovtools/"
@@ -94,7 +98,8 @@ if [[ $appncdu -eq 1 ]];then instr ncdu;fi
 if [[ $appdeborph -eq 1 ]];then instr deborphan;fi
 if [[ $appw3m -eq 1 ]];then instr w3m;fi
 if [[ $applynis -eq 1 ]];then instr lynis;fi
-if [[ apppasteb -eq 1 ]];then instr pastebinit;fi
+if [[ $apppasteb -eq 1 ]];then instr pastebinit;fi
+if [[ $appqrenc -eq 1 ]];then instr qrencode;fi
 if [[ $apprmlint -eq 1 ]];then
 echo "  -- installing rmlint"
 apt install -y rmlint --no-install-recommends  > /dev/null 2>&1
@@ -267,25 +272,25 @@ setfont /root/recovtools/spleen-8x16.psfu.gz;else setfont /root/recovtools/splee
 while true; do
 dskfree=$(df -k / | tail -1 | awk '{print int($4/(1024*1024))}')
 MENU_OPTIONS=(
-  "font size" "  ++  change current font size"
-  "fsck" "  ═   fsck all disks"
+"font size" "  ++  change current font size"
+"fsck" "  ═   fsck all disks"
 )
 if [ "$ntfsdisk" -eq 1 ]; then
   MENU_OPTIONS+=("ntfsfix" "  ─   try to fix ntfs errors")
 fi
 MENU_OPTIONS+=(
-  "inxi" "  ─   system summary"
-  "mc" "  ═   file manager"
-  "ncdu" "  ═   disk usage analysis"
-  "free space" "  ─   try to make free space"
-  "update-grub" "  ─   update grub bootloader"
-  "fix perms" "  ─   try to fix permissions"
-  "users/groups" "  ─   users & group management"
-  "testdisk" "  ─   launch testdisk"
-  "photorec" "  ─   launch photorec"
-  "shell" "  ═   root shell prompt"
-  "rescue mode" "  »   go to rescue mode"
-  "reboot" "  ×   reboot system now"
+"inxi" "  ─   system summary"
+"mc" "  ═   file manager"
+"ncdu" "  ═   disk usage analysis"
+"free space" "  ─   try to make free space"
+"update-grub" "  ─   update grub bootloader"
+"fix perms" "  ─   try to fix permissions"
+"users/groups" "  ─   users & group management"
+"testdisk" "  ─   launch testdisk"
+"photorec" "  ─   launch photorec"
+"shell" "  ═   root shell prompt"
+"rescue mode" "  »   go to rescue mode"
+"reboot" "  ×   reboot system now"
 )
 CHOICE=$(whiptail --title "  Emergency Menu ~ $HOSTNAME ~ $osarch  " --menu "\n■ Ram: $phymem Gb   ■ Disk free: $dskfree Gb\n■ Current kernel: $ckern\n≡ $(date '+%A %d %B %Y')\n\n► Choose an option:" 29 60 15 \
 "${MENU_OPTIONS[@]}" 3>&1 1>&2 2>&3)
@@ -407,7 +412,6 @@ echo "Done."
 ;;
 esac
 fi
-
 echo;echo
 dfoutput2=$(df -h / | awk 'NR==2 {print "Disk space used:", $5, "\nFree space available:", $4}')
 echo "Disk space before cleaning";echo "$dfoutput1"
@@ -555,35 +559,36 @@ while true; do
 if [ "$(hostname -I)" = "" ]; then netwstat="Network: not connected";else netwstat="Network: connected";fi
 dskfree=$(df -k / | tail -1 | awk '{print int($4/(1024*1024))}')
 MENU_OPTIONS=(
-  "font size" "  ++  change current font size"
-  "apt repair" "  ─   try to repair apt"
-  "apt upgrade" "  ═   apt update & upgrade"
-  "dpkg repair" "  ─   dpkg: repair broken packages"
-  "dpkg-reconfigure" "  ─   dpkg: reconfigure all packages"
-  "fsck" "  ═   fsck all disks"
+"font size" "  ++  change current font size"
+"apt repair" "  ─   try to repair apt"
+"apt upgrade" "  ═   apt update & upgrade"
+"dpkg repair" "  ─   dpkg: repair broken packages"
+"dpkg-reconfigure" "  ─   dpkg: reconfigure all packages"
+"fsck" "  ═   fsck all disks"
 )
 if [ "$ntfsdisk" -eq 1 ]; then
-  MENU_OPTIONS+=("ntfsfix" "  ─   try to fix ntfs errors")
+MENU_OPTIONS+=("ntfsfix" "  ─   try to fix ntfs errors")
 fi
 MENU_OPTIONS+=(
-  "inxi" "  ═   system summary"
-  "duf" "  ═   detailed disks info"
-  "ncdu" "  ═   disk usage analysis"
-  "usb mount" "  ═   mount usb storage"
-  "mc" "  ─   file manager"
-  "free space" "  ═   try to make free space"
-  "update grub" "  ─   update grub bootloader"
-  "fix perms" "  ─   try to fix permissions"
-  "users/groups" "  ─   users & group management"
-  "nmtui" "  ─   launch network config tool"
-  "w3m" "  ─   terminal web browser"
-  "lynis" "  ─   system audit"
-  "testdisk" "  ─   launch testdisk"
-  "photorec" "  ─   launch photorec"
-  "shell" "  ═   shell prompt"
-  "reboot" "  ×   reboot system now"
+"inxi" "  ═   system summary"
+"duf" "  ═   detailed disks info"
+"ncdu" "  ═   disk usage analysis"
+"usb mount" "  ═   mount usb storage"
+"mc" "  ─   file manager"
+"free space" "  ═   try to make free space"
+"update grub" "  ─   update grub bootloader"
+"fix perms" "  ─   try to fix permissions"
+"users/groups" "  ─   users & group management"
+"services" "  ─   systemd units management"
+"nmtui" "  ─   launch network config tool"
+"w3m" "  ─   terminal web browser"
+"lynis" "  ─   system audit"
+"testdisk" "  ─   launch testdisk"
+"photorec" "  ─   launch photorec"
+"shell" "  ═   shell prompt"
+"reboot" "  ×   reboot system now"
 )
-CHOICE=$(whiptail --title "  Rescue Menu ~ $HOSTNAME ~ $osarch  " --menu "\n■ Ram:$phymem Gb   ■ Disk free: $dskfree Gb\n■ Current kernel: $ckern\n≡ $(date '+%A %d %B %Y')   ≡ $netwstat\n► Choose an option:" 35 70 23 \
+CHOICE=$(whiptail --title "  Rescue Menu ~ $HOSTNAME ~ $osarch  " --menu "\n■ Ram:$phymem Gb   ■ Disk free: $dskfree Gb\n■ Current kernel: $ckern\n≡ $(date '+%A %d %B %Y')   ≡ $netwstat\n► Choose an option:" 36 70 24 \
 "${MENU_OPTIONS[@]}" 3>&1 1>&2 2>&3)
 case $CHOICE in
 "font size")
@@ -679,7 +684,20 @@ taskdone
 ;;
 "inxi")
 itdisp "Retrieving system summary...";sleep 1
-echo "$(echo;echo ">  Displaying system summary:";echo -e "(if output is larger than the screen height, use \e[4mup & down arrow to scroll\e[0m - \e[4m'q' to quit\e[0m)";echo;inxi -Fxz -c 11)" | less -R
+echo "$(echo;echo ">  Displaying system summary:";echo -e "(if output is larger than the screen height, use \e[4mup & down arrow to scroll\e[0m - \e[4m'q' to quit\e[0m)";echo;inxi -Fxz -c 11)" | less -R -O "/root/recovtools/inxi_output.txt"
+if [ "$(hostname -I)" != "" ]; then
+echo -e $separ
+echo "do you want to send this report to pastebin ? (y/n)"
+read x
+if [ "$x" = "y" ]; then
+sed -i '1,3d' "/root/recovtools/inxi_output.txt"
+sed -i 's/\x1B[@A-Z\\\]^_]\|\x1B\[[0-9:;<=>?]*[-!"#$%&'"'"'()*+,.\/]*[][\\@A-Z^_`a-z{|}~]//g' "/root/recovtools/inxi_output.txt"
+url=$(pastebinit -i "/root/recovtools/inxi_output.txt" -b http://pastebin.com)
+qrencode -t ANSI -o - "$url"
+echo
+echo $url
+fi
+fi
 taskdone
 ;;
 "duf")
@@ -881,6 +899,10 @@ taskdone
 remountroot
 bash -c /root/recovtools/usersmg.sh
 ;;
+"services")
+remountroot
+bash -c /root/recovtools/servmg.sh
+;;
 "nmtui")
 /usr/bin/nmtui
 ;;
@@ -896,7 +918,19 @@ echo -e "    \e[4m[SHIFT]+f to autoscroll\e[0m when the audit is running"
 echo -e "    \e[4m'q' to quit\e[0m."
 echo
 read -p " > Press enter to start..."
-lynis audit system | less -R
+lynis audit system | less -R -O "/root/recovtools/lynis_output.txt"
+if [ "$(hostname -I)" != "" ]; then
+echo -e $separ
+echo "do you want to send this report to pastebin ? (y/n)"
+read x
+if [ "$x" = "y" ]; then
+sed -i 's/\x1B[@A-Z\\\]^_]\|\x1B\[[0-9:;<=>?]*[-!"#$%&'"'"'()*+,.\/]*[][\\@A-Z^_`a-z{|}~]//g' "/root/recovtools/lynis_output.txt"
+url=$(pastebinit -i "/root/recovtools/lynis_output.txt" -b http://pastebin.com)
+qrencode -t ANSI -o - "$url"
+echo
+echo $url
+fi
+fi
 taskdone
 ;;
 "testdisk")
@@ -925,8 +959,8 @@ done
 #▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
 ##[usersmg.sh]##
 #!/bin/bash
-function user_exists { id "$1" &>/dev/null; }
-function group_exists { getent group "$1" &>/dev/null; }
+function user_exists { id "$1" &>/dev/null; };function group_exists { getent group "$1" &>/dev/null; }
+presskey() { echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x; }
 function list_users { echo "Users list:"
 users=$(cat /etc/passwd)
 IFS=$'\n' read -d '' -r -a user_array <<< "$users"
@@ -938,51 +972,58 @@ max_length=$length
 fi
 done
 max_length=$((max_length + 1))
-fg_color_col1="\e[97m"
-fg_color_col2="\e[37m"
+fgcol1="\e[97m"
+fgcol2="\e[37m"
 for ((i = 0; i < ${#user_array[@]}; i+=2)); do
 user1="${user_array[i]}"
 user2=""
 if (( i + 1 < ${#user_array[@]} )); then
 user2="${user_array[i + 1]}"
 fi
-printf "${fg_color_col1}%-${max_length}s\e[0m ! " "$user1"
-printf "${fg_color_col2}%s\e[0m\n" "$user2"
-if [ "$fg_color_col1" == "\e[97m" ]; then
-fg_color_col1="\e[37m"
+printf "${fgcol1}%-${max_length}s\e[0m ! " "$user1"
+printf "${fgcol2}%s\e[0m\n" "$user2"
+if [ "$fgcol1" == "\e[97m" ]; then
+fgcol1="\e[37m"
 else
-fg_color_col1="\e[97m"
+fgcol1="\e[97m"
 fi
-if [ "$fg_color_col2" == "\e[37m" ]; then
-fg_color_col2="\e[97m"
+if [ "$fgcol2" == "\e[37m" ]; then
+fgcol2="\e[97m"
 else
-fg_color_col2="\e[37m"
+fgcol2="\e[37m"
 fi
 if [ -z "$user2" ]; then
 break
 fi
 done
-echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+presskey
  }
 function add_user {
 read -p "Enter user name to add: " username
 if user_exists "$username"; then
 echo "Error: user $username already exists."
 else
-useradd "$username"
+adduser "$username"
 if [ $? -eq 0 ]; then
 echo "User $username added."
 else
 echo "Error adding user $username."
 fi
 fi
-echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+presskey
 }
 function modify_user {
-read -p "Enter user name to modify: " username
+while true;do
+echo;read -p "Enter user name to modify (or 'listusers' to display users list): " username
+if [ "$username" = "listusers" ]; then list_users;else break;fi
+done
+
 if ! user_exists "$username"; then
 echo "Error: user $username doesn't exist."
+presskey
 else
+while true;do
+clear
 echo
 echo "Modify user $username :"
 echo "1   Change shell"
@@ -990,19 +1031,25 @@ echo "2   Change UID"
 echo "3   Change main group"
 echo "4   Lock account"
 echo "5   Unlock account"
-#echo "6   Change password"
+echo "6   Change password"
 echo "q   return"
 read -p "Enter a choice: " option
 case $option in
 1)
-read -p "Enter new shell (ex: /bin/bash): " newshell
+echo -n "User $username current shell: "
+getent passwd "$username" | cut -d: -f7 
+read -p "Enter new shell (ex: /bin/bash) or press enter to exit: " newshell
+if [[ -z "$newshell" ]]; then
+echo "empty string provided, exiting"
+else
 usermod -s "$newshell" "$username"
 if [ $? -eq 0 ]; then
 echo "User $username shell modified to $newshell"
 else
 echo "Error modifying user  $username shell"
 fi
-echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+fi
+presskey
 ;;
 2)
 read -p "Enter new UID: " newuid
@@ -1012,7 +1059,7 @@ echo "User $username UID modified to $newuid"
 else
 echo "Error modifying user $username UID"
 fi
-echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+presskey
 ;;
 3)
 read -p "Enter new main group: " newgroup
@@ -1026,7 +1073,7 @@ fi
 else
 echo "Error: group $newgroup doesn't exist"
 fi
-echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+presskey
 ;;
 4)
 usermod -L "$username"
@@ -1035,7 +1082,7 @@ echo "User $username account locked"
 else
 echo "Error unlocking user $username account"
 fi
-echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+presskey
 ;;
 5)
 usermod -U "$username"
@@ -1044,13 +1091,23 @@ echo "User $username account unlocked"
 else
 echo "Error locking user $username account"
 fi
-echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+presskey
 ;;
-q) return ;;
+6)
+passwd "$username"
+if [ $? -eq 0 ]; then
+echo "User $username pawword changed."
+else
+echo "Error changing user $username password."
+fi
+presskey
+;;
+q) break;return ;;
 *)
 echo;echo "Unknown option, please enter a valid choice [1-5/q]"
 ;;
 esac
+done
 fi
 }
 
@@ -1066,7 +1123,7 @@ else
 echo "Error deleting user $username."
 fi
 fi
-echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+presskey
 }
 
 function list_groups {
@@ -1105,43 +1162,42 @@ max_length1=$((max_length1 + 1))
 max_length2=$((max_length2 + 1))
 max_length3=$((max_length3 + 1))
 max_length4=$((max_length4 + 1))
-fg_color_col1="\e[37m"
-fg_color_col2="\e[97m"
-fg_color_col3="\e[37m"
-fg_color_col4="\e[97m"
+fgcol1="\e[37m"
+fgcol2="\e[97m"
+fgcol3="\e[37m"
+fgcol4="\e[97m"
 for ((i = 0; i < ${#group_array[@]}; i+=4)); do
 group1="${group_array[i]}"
 group2="${group_array[i + 1]}"
 group3="${group_array[i + 2]}"
 group4="${group_array[i + 3]}"
-printf "${fg_color_col1}%-${max_length1}s\e[0m !" "$group1"
-printf "${fg_color_col2}%-${max_length2}s\e[0m !" "$group2"
-printf "${fg_color_col3}%-${max_length3}s\e[0m !" "$group3"
-printf "${fg_color_col4}%s\e[0m\n" "$group4"
-if [ "$fg_color_col1" == "\e[37m" ]; then
-fg_color_col1="\e[97m"
+printf "${fgcol1}%-${max_length1}s\e[0m !" "$group1"
+printf "${fgcol2}%-${max_length2}s\e[0m !" "$group2"
+printf "${fgcol3}%-${max_length3}s\e[0m !" "$group3"
+printf "${fgcol4}%s\e[0m\n" "$group4"
+if [ "$fgcol1" == "\e[37m" ]; then
+fgcol1="\e[97m"
 else
-fg_color_col1="\e[37m"
+fgcol1="\e[37m"
 fi
-if [ "$fg_color_col2" == "\e[97m" ]; then
-fg_color_col2="\e[37m"
+if [ "$fgcol2" == "\e[97m" ]; then
+fgcol2="\e[37m"
 else
-fg_color_col2="\e[97m"
+fgcol2="\e[97m"
 fi
-if [ "$fg_color_col3" == "\e[37m" ]; then
-fg_color_col3="\e[97m"
+if [ "$fgcol3" == "\e[37m" ]; then
+fgcol3="\e[97m"
 else
-fg_color_col3="\e[37m"
+fgcol3="\e[37m"
 fi
-if [ "$fg_color_col4" == "\e[97m" ]; then
-fg_color_col4="\e[37m"
+if [ "$fgcol4" == "\e[97m" ]; then
+fgcol4="\e[37m"
 else
-fg_color_col4="\e[97m"
+fgcol4="\e[97m"
 fi
 done
-echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+presskey
 }
-
 function add_group {
 read -p "Enter group name to add: " groupname
 if group_exists "$groupname"; then
@@ -1154,14 +1210,18 @@ else
 echo "Error adding group $groupname"
 fi
 fi
-echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+presskey
 }
-
 function modify_group {
-read -p "Enter group name to modify: " groupname
+while true;do
+echo;read -p "Enter group name to modify (or 'listgroups' to display group list): " groupname
+if [ "$groupname" = "listgroups" ]; then list_groups;else break;fi
+done
 if ! group_exists "$groupname"; then
 echo "Error: group $groupname doesn't exist"
 else
+while true; do
+clear
 echo
 echo "> group $groupname:"
 echo
@@ -1181,7 +1241,7 @@ echo "Group $groupname renamed to $newgroupname"
 else
 echo "Error renaming group $groupname"
 fi
-echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+presskey
 ;;
 2)
 read -p "Enter new group GID: " newgid
@@ -1191,7 +1251,7 @@ echo "Group $groupname GID changed to $newgid"
 else
 echo "error changing group $groupname gid"
 fi
-echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+presskey
 ;;
 3)
 read -p "Enter user name to add to group: " username
@@ -1205,7 +1265,7 @@ fi
 else
 echo "Error: user $username doesn't exist."
 fi
-echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+presskey
 ;;
 4)
 read -p "Enter username to delete from group: " username
@@ -1219,21 +1279,21 @@ fi
 else
 echo "Error: user $username doesn't exist."
 fi
-echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+presskey
 ;;
 5)
 echo "Group $groupname users:"
 getent group "$groupname" | awk -F: '{print $4}'
-echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+presskey
 ;;
-q) return ;;
+q) break;return ;;
 *)
 echo;echo "Unknown option, please enter a valid choice [1-5/q]"
 ;;
 esac
+done
 fi
 }
-
 function delete_group {
 read -p "Enter group name to delete: " groupname
 if ! group_exists "$groupname"; then
@@ -1246,9 +1306,8 @@ else
 echo "Error deleting group $groupname"
 fi
 fi
-echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+presskey
 }
-
 function user_details {
 read -p "Enter username: " username
 if user_exists "$username"; then
@@ -1260,9 +1319,8 @@ chage -l "$username"
 else
 echo "Error: user $username doesn't exist."
 fi
-echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+presskey
 }
-
 function group_details {
 read -p "Please enter group name: " groupname
 if group_exists "$groupname"; then
@@ -1271,22 +1329,22 @@ getent group "$groupname"
 else
 echo "Error: group $groupname doesn't exist."
 fi
-echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x
+presskey
 }
 clear
 while true; do
-echo
-echo "1   list users"
-echo "2   add user"
-echo "3   modify user"
-echo "4   delete user"
-echo "5   Détails de l'utilisateur"
-echo "6   list groups"
-echo "7   add group"
-echo "8   modify group"
-echo "9   delete group"
-echo "10  group infos"
-echo "q   quit"
+clear
+echo "1  - list users"
+echo "2  - add user"
+echo "3  - modify user"
+echo "4  - delete user"
+echo "5  - user details"
+echo "6  - list groups"
+echo "7  - add group"
+echo "8  - modify group"
+echo "9  - delete group"
+echo "10 - group infos"
+echo "q  - quit"
 echo "=========================="
 read -p "Enter a choice: " choice
 case $choice in
@@ -1305,6 +1363,282 @@ q) exit 0 ;;
 esac
 done
 ##[END_usersmg.sh]##
+#▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+##[servmg.sh]##
+#!/bin/bash
+list_services() { systemctl list-units --type=service --all;echo ""; };list_unit_files() { systemctl list-unit-files --type=service;echo ""; }
+presskey() { echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x; }
+view_service_logs() { local service=$1
+if [ -z "$service" ]; then echo -e "\e[31mNo service selected!\e[0m";echo;return;fi
+journalctl -u "$service";echo; }
+view_service_info() { local service=$1
+if [ -z "$service" ]; then echo -e "\e[31mNo service selected!\e[0m";echo;return;fi
+systemctl show "$service";echo
+echo -e "\e[34mService $service dependencies:\e[0m"
+systemctl list-dependencies "$service";echo; }
+handle_service_action() { local action=$1;local service=$2
+if systemctl $action "$service"; then echo -e "\e[32m$action of service $service succeeded.\e[0m"
+else echo -e "\e[31mError during $action of service $service.\e[0m";fi; }
+save_service_config() { local service=$1
+if [ -z "$service" ]; then echo -e "\e[31mNo service selected!\e[0m";echo;return;fi
+local backup_dir="/etc/systemd/system_backup"
+mkdir -p "$backup_dir"
+local etc_service_path="/etc/systemd/system/$service"
+local lib_service_path="/lib/systemd/system/$service"
+local saved_any=false
+if [ -f "$etc_service_path" ]; then
+cp "$etc_service_path" "$backup_dir/${service}_etc"
+echo -e "\e[32mConfiguration of service $service saved successfully from /etc/systemd/system.\e[0m"
+saved_any=true
+fi
+if [ -f "$lib_service_path" ]; then
+cp "$lib_service_path" "$backup_dir/${service}_lib"
+echo -e "\e[32mConfiguration of service $service saved successfully from /lib/systemd/system.\e[0m"
+saved_any=true
+fi
+if [ "$saved_any" = false ]; then
+echo -e "\e[31mService unit file for $service not found in /etc/systemd/system or /lib/systemd/system.\e[0m";echo
+fi
+}
+restore_service_config() {
+local service=$1
+if [ -z "$service" ]; then echo -e "\e[31mNo service selected!\e[0m";echo;return;fi
+local backup_dir="/etc/systemd/system_backup"
+local etc_backup_path="$backup_dir/${service}_etc"
+local lib_backup_path="$backup_dir/${service}_lib"
+local restored_any=false
+if [ -f "$lib_backup_path" ]; then
+cp "$lib_backup_path" "/lib/systemd/system/$service"
+echo -e "\e[32mConfiguration of service $service restored successfully to /lib/systemd/system.\e[0m"
+restored_any=true
+fi
+if [ -f "$etc_backup_path" ]; then
+if [ "$restored_any" = true ]; then
+echo -e "\e[33mA version of $service also exists in /etc/systemd/system.\e[0m"
+echo -e "\e[33mThis is likely a modified version of the unit in /lib/systemd/system.\e[0m"
+echo -e -n  "\e[33mDo you want to restore it as well? (y/n)\e[0m "
+while true; do
+read -r answer
+case "$answer" in
+[yY])
+cp "$etc_backup_path" "/etc/systemd/system/$service"
+echo -e "\e[32mConfiguration of service $service restored successfully to /etc/systemd/system.\e[0m"
+break
+;;
+[nN])
+echo -e "\e[33mSkipped restoring configuration to /etc/systemd/system.\e[0m"
+break
+;;
+*)
+echo -e "\e[31mInvalid input! Please type 'y' or 'n' and press Enter.\e[0m"
+;;
+esac
+done
+else
+cp "$etc_backup_path" "/etc/systemd/system/$service"
+echo -e "\e[32mConfiguration of service $service restored successfully to /etc/systemd/system.\e[0m"
+restored_any=true
+fi
+fi
+if [ "$restored_any" = true ]; then
+systemctl daemon-reload
+else
+echo -e "\e[31mBackup configuration for service $service does not exist!\e[0m";echo
+fi
+}
+save_all_services_state() {
+mkdir -p /etc/systemd/system_backup
+systemctl list-unit-files --type=service | while read -r line; do
+service=$(echo "$line" | awk '{print $1}')
+state=$(systemctl is-active "$service")
+enabled=$(systemctl is-enabled "$service" 2>/dev/null)
+echo "$service $state $enabled" >> /etc/systemd/system_backup/services_state.txt
+done
+echo -e "\e[32mState of all services saved successfully.\e[0m"
+presskey
+}
+show_saved_services_summary() {
+if [ ! -f /etc/systemd/system_backup/services_state.txt ]; then
+echo -e "\e[31mBackup state file for services does not exist!\e[0m"
+echo ""
+read -p "Press any key to return to the previous menu..."
+return
+fi
+echo -e "\e[34mSaved services state summary:\e[0m"
+cat /etc/systemd/system_backup/services_state.txt
+echo ""
+presskey
+}
+restore_all_services_state() {
+if [ ! -f /etc/systemd/system_backup/services_state.txt ]; then
+echo -e "\e[31mBackup state file for services does not exist!\e[0m"
+echo ""
+read -p "Press any key to return to the previous menu..."
+return
+fi
+while read -r line; do
+service=$(echo "$line" | awk '{print $1}')
+state=$(echo "$line" | awk '{print $2}')
+enabled=$(echo "$line" | awk '{print $3}')
+if [ "$enabled" == "enabled" ]; then
+systemctl enable "$service"
+else
+systemctl disable "$service"
+fi
+if [ "$state" == "active" ]; then
+systemctl start "$service"
+else
+systemctl stop "$service"
+fi
+done < /etc/systemd/system_backup/services_state.txt
+echo -e "\e[32mState of all services restored successfully.\e[0m"
+presskey
+}
+choose_service() {
+services=$(systemctl list-units --type=service --all | awk 'NR > 1 {if ($1 == "●" || $2 == "●") print $2; else print $1}')
+services=$(echo "$services" | head -n -5)
+max_length=0
+for service in $services; do
+length=${#service}
+if [ $length -gt $max_length ]; then
+max_length=$length
+fi
+done
+menu_width=$((max_length + 5))
+title="Select a service"
+text="Choose the service you want to check/modify:"
+options=()
+for service in $services; do  options+=("$service" "");done
+selected_service=$(whiptail --title "$title" --menu "$text" 20 $menu_width 10 "${options[@]}" 3>&1 1>&2 2>&3)
+exitstatus=$?
+echo $selected_service
+}
+modify_service_menu() {
+service=$(choose_service)
+if [ -z "$service" ]; then
+echo -e "\e[31mNo service selected!\e[0m";echo
+read -p "Press any key to return to the previous menu..."
+return
+fi
+while true; do
+clear
+echo -e "> \e[34m$service\e[0m";echo
+options=("Start service" "Stop service" "Restart service" "Enable service" "Disable service" "View service status" "View service logs" "View service information" "Save service configuration" "Restore service configuration" "Back to main menu")
+select opt in "${options[@]}"
+do
+case $REPLY in
+1)
+handle_service_action "start" "$service"
+;;
+2)
+handle_service_action "stop" "$service"
+;;
+3)
+handle_service_action "restart" "$service"
+;;
+4)
+handle_service_action "enable" "$service"
+;;
+5)
+handle_service_action "disable" "$service"
+;;
+6)
+systemctl status "$service"
+presskey
+;;
+7)
+view_service_logs "$service"
+presskey
+;;
+8)
+view_service_info "$service"
+presskey
+;;
+9)
+save_service_config "$service"
+presskey
+;;
+10)
+restore_service_config "$service"
+presskey
+;;
+11)
+break 2
+;;
+*)
+echo -e "\e[31mInvalid option!\e[0m"
+;;
+esac
+break
+done
+done
+}
+trap "clear; echo 'Exiting...'; exit 0" SIGINT SIGTERM
+while true; do
+clear
+echo "1  - List services"
+echo "2  - List service unit files"
+echo "3  - Modify a service"
+echo "4  - View service logs"
+echo "5  - View service information"
+echo "6  - Save service configuration"
+echo "7  - Restore service configuration"
+echo "8  - Save state of all services"
+echo "9  - Show summary of saved service states"
+echo "10 - Restore state of all services"
+echo "q  - Quit"
+echo "=========================="
+read -p "Choose an option: " option
+case $option in
+1)
+list_services
+presskey
+;;
+2)
+list_unit_files
+presskey
+;;
+3)
+modify_service_menu
+;;
+4)
+service=$(choose_service)
+view_service_logs "$service"
+presskey
+;;
+5)
+service=$(choose_service)
+view_service_info "$service"
+presskey
+;;
+6)
+service=$(choose_service)
+save_service_config "$service"
+presskey
+;;
+7)
+service=$(choose_service)
+restore_service_config "$service"
+presskey
+;;
+8)
+save_all_services_state
+;;
+9)
+show_saved_services_summary
+;;
+10)
+restore_all_services_state
+;;
+q)
+break
+;;
+*)
+echo -e "\e[31mInvalid option!\e[0m"
+;;
+esac
+done
+##[END_servmg.sh]##
 #▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
 ##[spleen-12x24.psfu.gz]##
 H4sICOxDxmAAA3NwbGVlbi0xMngyNC5wc2Z1AKxbCTyU6/d/XTUiS0LZKZWIDCNUotJV0U0pFSWv
