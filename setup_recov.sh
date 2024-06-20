@@ -379,7 +379,7 @@ rm -rf /root/.cache/thumbnails/*
 fi
 
 rmlchoice() {
-echo;echo "> now you can choose to run the rmlint script to strip binaries, or you can edit it before (or skip this part)"
+echo;echo "> now you can choose to run the rmlint generated script, or you can edit it before (or skip this part)"
 while true; do
 echo "[r] run the script now"
 echo "[e] edit the script"
@@ -826,7 +826,7 @@ echo " > deleting thumbnail cache for root"
 rm -rf /root/.cache/thumbnails/*
 fi
 rmlchoice() {
-echo;echo "> now you can choose to run the rmlint script to strip binaries, or you can edit it before (or skip this part)"
+echo;echo "> now you can choose to run the rmlint generated script, or you can edit it before (or skip this part)"
 while true; do
 echo "[r] run the script now"
 echo "[e] edit the script"
