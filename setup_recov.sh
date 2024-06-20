@@ -1,8 +1,8 @@
 #!/bin/bash
-echo;echo;clti="     \e[1m\e[97m\e[44m";
-sep="$clti===============================================\e[49m"
-echo -e "$sep";echo -e "$clti=== 'Recovery tools' grub entries installer ===\e[49m"
-echo -e "$sep\e[0m";echo "                                          By seb3773";echo
+echo;echo;clti="          \e[1m\e[97m\e[44m";
+sep="$clti==================================\e[49m"
+echo -e "$sep";echo -e "$clti=== 'Recovery tools' installer ===\e[49m"
+echo -e "$sep\e[0m";echo "                                  By seb3773";echo
 if [ ! "$EUID" -eq 0 ];then echo "           !! This script must be run as root.";echo;exit;fi
 osarch=$(dpkg --print-architecture)
 uuid=$(lsblk -o MOUNTPOINT,UUID | awk '$1 == "/" {print $2}')
@@ -25,7 +25,7 @@ echo -e "  > Root disk (/) UUID: \e[92m$uuid\e[39m"
 echo -e "  > locales: \e[92m$current_locale\e[39m"
 echo -e "  > keyboard layout: \e[92m$keyboard_layout\e[39m";echo
 echo -e "\e[97m\e[100m # needed packages:\e[39m\e[49m"
-sizless=300;sizmc=1500;sizinxi=1500;sizduf=2200;sizncdu=120;sizdeborph=300;sizw3m=2900;sizlynis=1700;sizrmlint=400;sizpasteb=330;sizqrenc=80;
+sizless=300;sizmc=1500;sizinxi=1500;sizduf=2200;sizncdu=120;sizdeborph=300;sizw3m=2900;sizlynis=1700;sizrmlint=400;sizpasteb=330;sizqrenc=80;sizmemtest=60;
 appok(){ echo -e -n "\e[92m\e[4mOk\e[39m\e[0m";};notok(){ echo -e -n "\e[41m\e[97mX\e[49m\e[39m ";};siztoinst=0;lstapps=""
 echo -e -n "  > checking 'less':  ";if [ -f /usr/bin/less ];then appok;else notok;appless=1;((siztoinst+=sizless));lstapps+="  less  ";fi
 echo -e -n "      > checking 'mc' : ";if [ -f /bin/mc ];then appok;else notok;appmc=1;((siztoinst+=sizmc));lstapps+="  mc  ";fi;echo
@@ -37,7 +37,8 @@ echo -e -n "  > checking 'lynis': ";if [ -f /usr/sbin/lynis ];then appok;else no
 echo -e -n "      > checking 'deborphan': ";if [ -f /usr/bin/deborphan ];then appok;else notok;appdeborph=1;((siztoinst+=sizdeborph));lstapps+="  deborphan  ";fi;echo
 echo -e -n "  > checking 'rmlint': ";if [ -f /usr/bin/rmlint ];then appok;else notok;apprmlint=1;((siztoinst+=sizrmlint));lstapps+="  rmlint  ";fi
 echo -e -n "     > checking 'pastebinit': ";if [ -f /usr/bin/pastebinit ];then appok;else notok;apppasteb=1;((siztoinst+=sizpasteb));lstapps+="  pastebinit  ";fi;echo
-echo -e -n "  > checking 'qrencode': ";if [ -f /usr/bin/qrencode ];then appok;else notok;appqrenc=1;((siztoinst+=sizqrenc));lstapps+="  qrencode  ";fi;echo
+echo -e -n "  > checking 'qrencode': ";if [ -f /usr/bin/qrencode ];then appok;else notok;appqrenc=1;((siztoinst+=sizqrenc));lstapps+="  qrencode  ";fi;
+echo -e -n "   > checking 'memtester': ";if [ -f /sbin/memtester ];then appok;else notok;appmemtest=1;((siztoinst+=sizmemtest));lstapps+="  memtester  ";fi;echo
 if [ -n "$lstapps" ]; then echo;echo -e " \e[4mThe following needed package(s) will be installed:\e[0m "
 echo -e "\e[93m  $lstapps\e[39m";echo -e " this will use approximatively \e[4m$siztoinst K of disk space\e[0m.";fi
 echo;echo -n -e " Proceed ? (\e[92my\e[39m/\e[91mn\e[39m) " && read x
@@ -69,6 +70,7 @@ extract_script emergencymenu.sh "/root/recovtools"
 extract_script rescuemenu.sh "/root/recovtools"
 extract_script servmg.sh "/root/recovtools"
 extract_script usersmg.sh "/root/recovtools"
+extract_script ramtest.sh "/root/recovtools"
 sudo chown root:root /root/recovtools/emergencymenu.sh
 sudo chmod 700 /root/recovtools/emergencymenu.sh
 sudo chown root:root /root/recovtools/rescuemenu.sh
@@ -77,6 +79,8 @@ sudo chown root:root /root/recovtools/servmg.sh
 sudo chmod 700 /root/recovtools/servmg.sh
 sudo chown root:root /root/recovtools/usersmg.sh
 sudo chmod 700 /root/recovtools/usersmg.sh
+sudo chown root:root /root/recovtools/ramtest.sh
+sudo chmod 700 /root/recovtools/ramtest.sh
 echo;echo " # Dumping current keymap to /root/recovtools/"
 dumpkeys > /root/recovtools/recovmenu.keymap
 if [ -n "$lstapps" ]; then echo;echo " # Installing needed packages..."
@@ -100,6 +104,7 @@ if [[ $appw3m -eq 1 ]];then instr w3m;fi
 if [[ $applynis -eq 1 ]];then instr lynis;fi
 if [[ $apppasteb -eq 1 ]];then instr pastebinit;fi
 if [[ $appqrenc -eq 1 ]];then instr qrencode;fi
+if [[ $appmemtest -eq 1 ]];then instr memtester;fi
 if [[ $apprmlint -eq 1 ]];then
 echo "  -- installing rmlint"
 apt install -y rmlint --no-install-recommends  > /dev/null 2>&1
@@ -181,7 +186,9 @@ echo "IgnoreSIGPIPE=no"
 echo "SendSIGHUP=yes"
 echo
 } > "/etc/systemd/system/rescue.service"
-echo;echo " # Creating /etc/grub.d/39_recoverytools"
+echo;echo " # reloading systemd daemons...";echo
+systemctl daemon-reload
+echo " # Creating /etc/grub.d/39_recoverytools"
 { echo '#!/bin/sh'
 echo 'exec tail -n +3 $0'
 echo 'submenu "Recovery tools" --class recovery {'
@@ -220,8 +227,6 @@ fi
 echo '}'
 } > "/etc/grub.d/39_recoverytools"
 chmod +x "/etc/grub.d/39_recoverytools"
-echo " # reloading systemd daemons..."
-systemctl daemon-reload
 echo;echo " # Updating grub...";echo
 update-grub > /dev/null 2>&1
 #check error code + propose to remove modifications
@@ -285,6 +290,7 @@ MENU_OPTIONS+=(
 "free space" "  ─   try to make free space"
 "update-grub" "  ─   update grub bootloader"
 "fix perms" "  ─   try to fix permissions"
+"memtester" "  ─   test physical ram"
 "users/groups" "  ─   users & group management"
 "testdisk" "  ─   launch testdisk"
 "photorec" "  ─   launch photorec"
@@ -292,7 +298,7 @@ MENU_OPTIONS+=(
 "rescue mode" "  »   go to rescue mode"
 "reboot" "  ×   reboot system now"
 )
-CHOICE=$(whiptail --title "  Emergency Menu ~ $HOSTNAME ~ $osarch  " --menu "\n■ Ram: $phymem Gb   ■ Disk free: $dskfree Gb\n■ Current kernel: $ckern\n≡ $(date '+%A %d %B %Y')\n\n► Choose an option:" 29 60 15 \
+CHOICE=$(whiptail --title "  Emergency Menu ~ $HOSTNAME ~ $osarch  " --menu "\n■ Ram: $phymem Gb   ■ Disk free: $dskfree Gb\n■ Current kernel: $ckern\n≡ $(date '+%A %d %B %Y')\n\n► Choose an option:" 30 60 16 \
 "${MENU_OPTIONS[@]}" 3>&1 1>&2 2>&3)
 case $CHOICE in
 "font size")
@@ -461,6 +467,11 @@ taskdone
 remountroot
 bash -c /root/recovtools/usersmg.sh
 ;;
+"memtester")
+remountroot
+bash -c /root/recovtools/ramtest.sh
+trap SIGINT
+;;
 "testdisk")
 itdisp "Launching testdisk"
 remountroot
@@ -578,6 +589,7 @@ MENU_OPTIONS+=(
 "free space" "  ═   try to make free space"
 "update grub" "  ─   update grub bootloader"
 "fix perms" "  ─   try to fix permissions"
+"memtester" "  ─   test physical ram"
 "users/groups" "  ─   users & group management"
 "services" "  ─   systemd units management"
 "nmtui" "  ─   launch network config tool"
@@ -588,7 +600,7 @@ MENU_OPTIONS+=(
 "shell" "  ═   shell prompt"
 "reboot" "  ×   reboot system now"
 )
-CHOICE=$(whiptail --title "  Rescue Menu ~ $HOSTNAME ~ $osarch  " --menu "\n■ Ram:$phymem Gb   ■ Disk free: $dskfree Gb\n■ Current kernel: $ckern\n≡ $(date '+%A %d %B %Y')   ≡ $netwstat\n► Choose an option:" 36 70 24 \
+CHOICE=$(whiptail --title "  Rescue Menu ~ $HOSTNAME ~ $osarch  " --menu "\n■ Ram:$phymem Gb   ■ Disk free: $dskfree Gb\n■ Current kernel: $ckern\n≡ $(date '+%A %d %B %Y')   ≡ $netwstat\n► Choose an option:" 37 70 25 \
 "${MENU_OPTIONS[@]}" 3>&1 1>&2 2>&3)
 case $CHOICE in
 "font size")
@@ -647,6 +659,18 @@ taskdone
 itdisp "Repairing broken packages..."
 echo "> executing :dpkg --force-all --configure -a"
 dpkg --force-all --configure -a
+echo "> executing :apt clean"
+sudo apt clean
+echo "> executing :apt update --fix-missing"
+sudo apt update --fix-missing
+echo "> executing :apt install -f"
+sudo apt install -f
+echo "> executing :dpkg --force-all --configure -a"
+dpkg --force-all --configure -a
+echo "> executing :apt upgrade"
+apt upgrade
+echo "> executing :apt dist-upgrade"
+apt dist-upgrade
 sleep 1
 taskdone
 ;;
@@ -898,6 +922,11 @@ taskdone
 "users/groups")
 remountroot
 bash -c /root/recovtools/usersmg.sh
+;;
+"memtester")
+remountroot
+bash -c /root/recovtools/ramtest.sh
+trap SIGINT
 ;;
 "services")
 remountroot
@@ -1639,6 +1668,78 @@ echo -e "\e[31mInvalid option!\e[0m"
 esac
 done
 ##[END_servmg.sh]##
+#▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+##[ramtest.sh]##
+#!/bin/bash
+presskey() { echo -e "\e[97m\e[100mPress enter\e[39m\e[49m ";read x; }
+trap 'echo;echo "Canceled by user.";presskey;exit 0' SIGINT
+test_with_size() { read -p "Enter size to test (KB): " size_kb
+if [[ -z $size_kb ]]; then echo "No size entered. Returning to previous menu.";return;fi
+memtester "${size_kb}K" 1;}
+test_with_address() { read -p "Enter starting physical address: " start_addr
+read -p "Enter size to test (KB): " size_kb
+if [[ -z $size_kb ]]; then echo "No size entered. Returning to previous menu.";return;fi
+memtester -p "$start_addr" "${size_kb}K" 1;}
+while true; do
+clear;echo; echo "System RAM ranges:"; echo
+maxtestable=0;maxrange="";declare -a ranges;declare -a sizes
+hsize() { local size_kb=$1
+if (( size_kb >= 1048576 )); then
+echo "$(awk "BEGIN {printf \"%.2f GB\", $size_kb / 1048576}")"
+elif (( size_kb >= 1024 )); then
+echo "$(awk "BEGIN {printf \"%.2f MB\", $size_kb / 1024}")"
+else echo "${size_kb} KB";fi;}
+while IFS= read -r line; do
+start_addr=$(echo $line | awk '{print $1}' | cut -d'-' -f1)
+end_addr=$(echo $line | awk '{print $1}' | cut -d'-' -f2)
+start_addr_dec=$((16#$start_addr))
+end_addr_dec=$((16#$end_addr))
+size_bytes=$((end_addr_dec - start_addr_dec + 1))
+size_kb=$((size_bytes / 1024))
+ranges+=("$start_addr-$end_addr")
+sizes+=("$size_kb")
+done < <(grep -i "System RAM" /proc/iomem)
+for i in "${!ranges[@]}"; do
+size_kb="${sizes[i]}";human_readable=$(hsize "$size_kb")
+if (( size_kb >= 1024 )); then printf "Range: %s\t - Size: %dKb (%s)\n" "${ranges[i]}" "$size_kb" "$human_readable"
+else printf "Range: %s\t - Size: %dKb\n" "${ranges[i]}" "$size_kb";fi
+done
+for i in "${!sizes[@]}"; do
+if (( sizes[i] > maxtestable )); then maxtestable=${sizes[i]};maxrange=${ranges[i]};fi
+done
+echo "--------------------------------------------------------------"
+echo "The largest memory range is: $maxrange with a size of ${maxtestable}Kb ($(hsize $maxtestable))"; echo
+echo
+echo "1. Test max testable RAM"
+echo "2. Enter a size to test"
+echo "3. Enter a starting physical address and size to test"
+echo "q. Quit"
+echo "-------------------"
+read -p "Enter your choice: " choice
+case "$choice" in
+1)
+echo "Testing max testable RAM..."
+memtester "${maxtestable}K" 1
+presskey
+;;
+2)
+echo "Testing with a specified size..."
+test_with_size;presskey
+;;
+3)
+echo "Testing with a specified start address and size..."
+test_with_address;presskey
+;;
+q|Q)
+echo "Exiting..."
+exit 0
+;;
+*)
+echo "Invalid choice. Please enter 1, 2, 3, or q."
+;;
+esac
+done
+##[END_ramtest.sh]##
 #▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
 ##[spleen-12x24.psfu.gz]##
 H4sICOxDxmAAA3NwbGVlbi0xMngyNC5wc2Z1AKxbCTyU6/d/XTUiS0LZKZWIDCNUotJV0U0pFSWv
