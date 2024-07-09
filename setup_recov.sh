@@ -7,6 +7,7 @@ if [ ! "$EUID" -eq 0 ];then echo "           !! This script must be run as root.
 osarch=$(dpkg --print-architecture)
 uuid=$(lsblk -o MOUNTPOINT,UUID | awk '$1 == "/" {print $2}')
 current_locale=$(locale | grep LANG= | cut -d'=' -f2)
+lg=$(echo $current_locale | cut -d'_' -f1)
 keyboard_layout=$(setxkbmap -query | grep layout | awk '{print $2}')
 qver=$(command get-q4os-version 2>/dev/null)
 extract_script(){ start_mark="##\\[$1\\]##";end_mark="##\\[END_$1\\]##"
@@ -254,7 +255,7 @@ if [[ $clonezi -eq 1 ]];then
 echo "linux (loop)/live/vmlinuz nomodeset boot=live live-config edd=on ocs_live_run=\"ocs-live-general\" ocs_live_extra_param=\"\" keyboard-layouts=\"$keyboard_layout\" ocs_live_batch=\"no\" locales=\"$current_locale\" ip=frommedia toram=filesystem.squashfs findiso=\$isofile"
 echo 'initrd (loop)/live/initrd.img'
 else
-echo 'linux (loop)/casper/vmlinuz boot=casper iso-scan/filename=$isofile quiet noeject fastboot toram fsck.mode=skip noprompt splash'
+echo "linux (loop)/casper/vmlinuz boot=casper iso-scan/filename=\$isofile quiet noeject fastboot toram fsck.mode=skip noprompt splash console-setup/layoutcode=$lg bootkbd=$lg"
 echo 'initrd (loop)/casper/initrd.lz'
 fi
 
