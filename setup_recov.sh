@@ -26,26 +26,32 @@ echo -e "  > locales: \e[92m$current_locale\e[39m"
 echo -e "  > keyboard layout: \e[92m$keyboard_layout\e[39m";echo
 echo -e "\e[97m\e[100m # needed packages:\e[39m\e[49m"
 sizless=300;sizmc=1500;sizinxi=1500;sizduf=2200;sizncdu=120;sizdeborph=300;sizw3m=2900;sizlynis=1700;sizrmlint=400;sizpasteb=330;sizqrenc=80;sizmemtest=60;
-appok(){ echo -e -n "\e[92m\e[4mOk\e[39m\e[0m";};notok(){ echo -e -n "\e[41m\e[97mX\e[49m\e[39m ";};siztoinst=0;lstapps=""
-echo -e -n "  > checking 'less':  ";if [ -f /usr/bin/less ];then appok;else notok;appless=1;((siztoinst+=sizless));lstapps+="  less  ";fi
-echo -e -n "      > checking 'mc' : ";if [ -f /bin/mc ];then appok;else notok;appmc=1;((siztoinst+=sizmc));lstapps+="  mc  ";fi;echo
-echo -e -n "  > checking 'inxi':  ";if [ -f /usr/bin/inxi ];then appok;else notok;appinxi=1;((siztoinst+=sizinxi));lstapps+="  inxi  ";fi
-echo -e -n "      > checking 'duf': ";if [ -f /usr/bin/duf ];then appok;else notok;appduf=1;((siztoinst+=sizduf));lstapps+="  duf  ";fi;echo
-echo -e -n "  > checking 'ncdu':  ";if [ -f /usr/bin/ncdu ];then appok;else notok;appncdu=1;((siztoinst+=sizncdu));lstapps+="  ncdu  ";fi
-echo -e -n "      > checking 'w3m': ";if [ -f /usr/bin/w3m ];then appok;else notok;appw3m=1;((siztoinst+=sizw3m));lstapps+="  w3m  ";fi;echo
-echo -e -n "  > checking 'lynis': ";if [ -f /usr/sbin/lynis ];then appok;else notok;applynis=1;((siztoinst+=sizlynis));lstapps+="  lynis  ";fi
-echo -e -n "      > checking 'deborphan': ";if [ -f /usr/bin/deborphan ];then appok;else notok;appdeborph=1;((siztoinst+=sizdeborph));lstapps+="  deborphan  ";fi;echo
-echo -e -n "  > checking 'rmlint': ";if [ -f /usr/bin/rmlint ];then appok;else notok;apprmlint=1;((siztoinst+=sizrmlint));lstapps+="  rmlint  ";fi
-echo -e -n "     > checking 'pastebinit': ";if [ -f /usr/bin/pastebinit ];then appok;else notok;apppasteb=1;((siztoinst+=sizpasteb));lstapps+="  pastebinit  ";fi;echo
+appok(){ echo -e -n "\e[92m☑ \e[39m\e[0m";};notok(){ echo -e -n "\e[91m☒ \e[49m\e[39m ";};siztoinst=0;lstapps=""
+echo -e -n "  > checking 'less':     ";if [ -f /usr/bin/less ];then appok;else notok;appless=1;((siztoinst+=sizless));lstapps+="  less  ";fi
+echo -e -n "    > checking 'mc' :        ";if [ -f /bin/mc ];then appok;else notok;appmc=1;((siztoinst+=sizmc));lstapps+="  mc  ";fi;echo
+echo -e -n "  > checking 'inxi':     ";if [ -f /usr/bin/inxi ];then appok;else notok;appinxi=1;((siztoinst+=sizinxi));lstapps+="  inxi  ";fi
+echo -e -n "    > checking 'duf':        ";if [ -f /usr/bin/duf ];then appok;else notok;appduf=1;((siztoinst+=sizduf));lstapps+="  duf  ";fi;echo
+echo -e -n "  > checking 'ncdu':     ";if [ -f /usr/bin/ncdu ];then appok;else notok;appncdu=1;((siztoinst+=sizncdu));lstapps+="  ncdu  ";fi
+echo -e -n "    > checking 'w3m':        ";if [ -f /usr/bin/w3m ];then appok;else notok;appw3m=1;((siztoinst+=sizw3m));lstapps+="  w3m  ";fi;echo
+echo -e -n "  > checking 'lynis':    ";if [ -f /usr/sbin/lynis ];then appok;else notok;applynis=1;((siztoinst+=sizlynis));lstapps+="  lynis  ";fi
+echo -e -n "    > checking 'deborphan':  ";if [ -f /usr/bin/deborphan ];then appok;else notok;appdeborph=1;((siztoinst+=sizdeborph));lstapps+="  deborphan  ";fi;echo
+echo -e -n "  > checking 'rmlint':   ";if [ -f /usr/bin/rmlint ];then appok;else notok;apprmlint=1;((siztoinst+=sizrmlint));lstapps+="  rmlint  ";fi
+echo -e -n "    > checking 'pastebinit': ";if [ -f /usr/bin/pastebinit ];then appok;else notok;apppasteb=1;((siztoinst+=sizpasteb));lstapps+="  pastebinit  ";fi;echo
 echo -e -n "  > checking 'qrencode': ";if [ -f /usr/bin/qrencode ];then appok;else notok;appqrenc=1;((siztoinst+=sizqrenc));lstapps+="  qrencode  ";fi;
-echo -e -n "   > checking 'memtester': ";if [ -f /sbin/memtester ];then appok;else notok;appmemtest=1;((siztoinst+=sizmemtest));lstapps+="  memtester  ";fi;echo
+echo -e -n "    > checking 'memtester':  ";if [ -f /sbin/memtester ];then appok;else notok;appmemtest=1;((siztoinst+=sizmemtest));lstapps+="  memtester  ";fi;echo
 if [ -n "$lstapps" ]; then echo;echo -e " \e[4mThe following needed package(s) will be installed:\e[0m "
 echo -e "\e[93m  $lstapps\e[39m";echo -e " this will use approximatively \e[4m$siztoinst K of disk space\e[0m.";fi
 echo;echo -n -e " Proceed ? (\e[92my\e[39m/\e[91mn\e[39m) " && read x
 if [ "$x" == "y" ] || [ "$x" == "Y" ];then
-echo -e "  > do you want to install 'clonezilla live' entry too ?"
-echo -e -n "    this will use ~ \e[4m430Mb of disk space\e[0m. (\e[92my\e[39m/\e[91mn\e[39m) " && read x
-if [ "$x" == "y" ] || [ "$x" == "Y" ];then clonezi=1;else clonezi=0;fi
+echo;echo -e "  > do you want to install 'clonezilla live' or 'rescuezilla live' entry too ?"
+echo -e "    This will use ~ \e[93m\e[4m425Mb of disk space\e[0m for \e[93mclonezilla live\e[39m"
+echo -e "    or ~ \e[96m\e[4m1,1 Gb of disk space\e[0m for \e[96mrescuezilla live\e[39m."
+echo -e -n " Enter '\e[93mc\e[39m' for clonezilla ; '\e[96mr\e[39m' for rescuezilla; '\e[91mn\e[39m' to skip this part:" && read x;echo
+if [ "$x" == "c" ] || [ "$x" == "C" ];then clonezi=1;rescuezi=0;echo "  > 'clonezilla live' entry selected"
+elif [ "$x" == "r" ] || [ "$x" == "R" ];then clonezi=0;rescuezi=1;echo "  > 'rescuezilla live' entry selected"
+else
+clonezi=0;rescuezi=0
+fi
 mkdir -p /root/recovtools
 echo;echo -e "  > do you want to protect the menus access with a password ? "
 echo -e "    (you can set a password too for the corresponding menu entries"
@@ -122,16 +128,33 @@ if [ "$x" == "q" ] || [ "$x" == "Q" ];then echo;echo "Exited.";echo;fi
 echo
 fi
 if [[ $clonezi -eq 1 ]];then
-if ! ls /root/recovtools/clonezilla-live-3.1.2-22-*.iso 1> /dev/null 2>&1; then
-echo;echo " # downloading clonezilla ISO..."
 if [ "$osarch" = "amd64" ]; then
 zillaiso="clonezilla-live-3.1.2-22-amd64.iso"
-wget -q --show-progress https://deac-riga.dl.sourceforge.net/project/clonezilla/clonezilla_live_stable/3.1.2-22/$zillaiso
 else zillaiso="clonezilla-live-3.1.2-22-i686.iso"
-wget -q --show-progress https://deac-fra.dl.sourceforge.net/project/clonezilla/clonezilla_live_stable/3.1.2-22/$zillaiso;fi
-echo;echo " # moving clonezilla ISO to /root/recovtools/"
-mv -f $zillaiso /root/recovtools/;fi
 fi
+if ! ls /root/recovtools/clonezilla-live-3.1.2-22-*.iso 1> /dev/null 2>&1; then
+echo;echo " # downloading clonezilla ISO..."
+wget -q --show-progress https://deac-fra.dl.sourceforge.net/project/clonezilla/clonezilla_live_stable/3.1.2-22/$zillaiso
+echo;echo " # moving clonezilla ISO to /root/recovtools/"
+mv -f $zillaiso /root/recovtools/
+fi
+fi
+
+
+if [[ $rescuezi -eq 1 ]];then
+if [ "$osarch" = "amd64" ]; then
+zillaiso="rescuezilla-2.5-64bit.jammy.iso"
+else zillaiso="rescuezilla-2.5-32bit.bionic.iso"
+fi
+if ! ls /root/recovtools/rescuezilla-2.5-*.iso 1> /dev/null 2>&1; then
+echo;echo " # downloading rescuezilla ISO..."
+wget -q --show-progress https://github.com/rescuezilla/rescuezilla/releases/download/2.5/$zillaiso
+echo;echo " # moving rescuezilla ISO to /root/recovtools/"
+mv -f $zillaiso /root/recovtools/
+fi
+fi
+
+
 echo;echo " # Creating emergency & rescue system units overrides to /etc/systemd/system/"
 echo "   > Creating /etc/systemd/system/emergency.service"
 {
@@ -210,9 +233,15 @@ echo 'insmod ext2'
 echo "linux /vmlinuz root=UUID=$uuid systemd.unit=rescue.target recovtools=1"
 echo 'initrd /initrd.img'
 echo '}'
+if [[ $clonezi -eq 1 || $rescuezi -eq 1 ]]; then
+
 if [[ $clonezi -eq 1 ]];then
 echo 'menuentry "Clonezilla live" --class recovery {'
+else
+echo 'menuentry "Rescuezilla live" --class recovery {'
+fi
 [ "$osarch" = "amd64" ] && echo 'rmmod tpm'
+
 echo "search --no-floppy --fs-uuid --set $uuid"
 echo 'insmod gzio'
 echo 'if [ x$grub_platform = xxen ]; then insmod xzio; insmod lzopio; fi'
@@ -220,8 +249,17 @@ echo 'insmod part_gpt'
 echo 'insmod ext2'
 echo "set isofile=\"/root/recovtools/$zillaiso\""
 echo 'loopback loop $isofile'
+
+if [[ $clonezi -eq 1 ]];then
 echo "linux (loop)/live/vmlinuz nomodeset boot=live live-config edd=on ocs_live_run=\"ocs-live-general\" ocs_live_extra_param=\"\" keyboard-layouts=\"$keyboard_layout\" ocs_live_batch=\"no\" locales=\"$current_locale\" ip=frommedia toram=filesystem.squashfs findiso=\$isofile"
 echo 'initrd (loop)/live/initrd.img'
+else
+echo "linux (loop)/casper/vmlinuz boot=casper iso-scan/filename=$isofile quiet noeject fastboot toram fsck.mode=skip noprompt splash"
+echo 'initrd (loop)/casper/initrd.lz'
+fi
+
+
+
 echo '}'
 fi
 echo '}'
