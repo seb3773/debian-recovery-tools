@@ -254,7 +254,7 @@ if [[ $clonezi -eq 1 ]];then
 echo "linux (loop)/live/vmlinuz nomodeset boot=live live-config edd=on ocs_live_run=\"ocs-live-general\" ocs_live_extra_param=\"\" keyboard-layouts=\"$keyboard_layout\" ocs_live_batch=\"no\" locales=\"$current_locale\" ip=frommedia toram=filesystem.squashfs findiso=\$isofile"
 echo 'initrd (loop)/live/initrd.img'
 else
-echo "linux (loop)/casper/vmlinuz boot=casper iso-scan/filename=$isofile quiet noeject fastboot toram fsck.mode=skip noprompt splash"
+echo 'linux (loop)/casper/vmlinuz boot=casper iso-scan/filename=$isofile quiet noeject fastboot toram fsck.mode=skip noprompt splash'
 echo 'initrd (loop)/casper/initrd.lz'
 fi
 
