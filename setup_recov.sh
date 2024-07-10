@@ -46,7 +46,7 @@ echo;echo -n -e " Proceed ? (\e[92my\e[39m/\e[91mn\e[39m) " && read x
 if [ "$x" == "y" ] || [ "$x" == "Y" ];then
 echo;echo -e "  > do you want to install 'clonezilla live' or 'rescuezilla live' entry too ?"
 echo -e "    This will use ~ \e[93m\e[4m425Mb of disk space\e[0m for \e[93mclonezilla live\e[39m"
-echo -e "    or ~ \e[96m\e[4m1,1 Gb of disk space\e[0m for \e[96mrescuezilla live\e[39m."
+echo -e "    or ~ \e[96m\e[4m1,2 Gb of disk space\e[0m for \e[96mrescuezilla live\e[39m."
 echo -e -n " Enter '\e[93mc\e[39m' for clonezilla ; '\e[96mr\e[39m' for rescuezilla; '\e[91mn\e[39m' to skip this part:" && read x;echo
 if [ "$x" == "c" ] || [ "$x" == "C" ];then clonezi=1;rescuezi=0;echo "  > 'clonezilla live' entry selected"
 elif [ "$x" == "r" ] || [ "$x" == "R" ];then clonezi=0;rescuezi=1;echo "  > 'rescuezilla live' entry selected"
